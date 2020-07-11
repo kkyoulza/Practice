@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-163705785-1"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'UA-163705785-1');
+    </script>
+    <script>
+                // 누적합 공식
+        function smeyrMesoCostS(n) {
+            const a = 9500000;
+            const d = 7130000;
+            return (n * (2 * a + ((n - 1) * d))) / 2;
+        }
+
+        function etcMesoCostS(n) {
+            const a = 19040000;
+            const d = 6600000;
+            return (n * (2 * a + ((n - 1) * d))) / 2;
+        }
+
+        function symbolNumberS(n) {
+            return ((n * (n + 1) * (2 * n + 1)) / 6) + 11 * n;
+        }
+
+        // 만렙까지 필요한 메소 계산
+        function smeyrCalMeso(level) {
+            if (level == 1) return smeyrMesoCostS(19);
+            else return smeyrMesoCostS(19) - smeyrMesoCostS(level - 1);
+        }
+
+        function etcCalMeso(level) {
+            if (level == 1) return etcMesoCostS(19);
+            else return etcMesoCostS(19) - etcMesoCostS(level - 1);
+        }
+
+        // 만렙까지 필요한 심볼 개수 계산
+        function requiredSymbol(level, number) {
+            if (level == 1) return symbolNumberS(19) - number;
+            else return symbolNumberS(19) - symbolNumberS(level - 1) - number;
+        }
+
+        // 만렙 달성 날짜 계산
+        function calDate(level, number, symbolPerDay) {
+            let today = new Date(); 
+            let requiredDay = Math.ceil(requiredSymbol(level, number) / symbolPerDay);
+
+            today.setDate(today.getDate() + requiredDay);
+            let year = today.getFullYear(); // 년도
+            let month = today.getMonth() + 1; // 월
+            let date = today.getDate(); // 날짜
+            let day = today.getDay(); // 요일
+            let maxLevelDate = year + '년' + month + '월' + date + '일' + '<br />' + '(' + requiredDay + '일)';
+
+            return maxLevelDate;
+        }
+
+        // 예제 10-3,10-6
+
+        var TimerID = null;
+        function setDoing(time){ //time만큼의 시간뒤에 load()가 실행되게끔 했다.
+            TimerID = setTimeout("load()",time);
+
+            document.getElementById("prin").title = "프린트 작동 예정"; //마우스를 올려놨을 때 나오게끔 햤다.
+        }
+
+        function cancelTime (){ 
+            if (TimerID != null)
+                clearTimeout(TimerID); //타이머 중단!
+        }
+
+        function load(){
+            window.print(); //프린트 창을 띄운다.
+        }
+
+
+        function init(){ //시계기능
+          clock();
+          setInterval(clock,1000);
+        }
+
+
+        function clock(){
+          var now = new Date();
+          var ctx = document.getElementById('canvas').getContext('2d');
+          ctx.save();
+          ctx.clearRect(0,0,150,150);
+          ctx.translate(75,75);
+          ctx.scale(0.4,0.4);
+          ctx.rotate(-Math.PI/2);
+          ctx.strokeStyle = "black";
+          ctx.fillStyle = "white";
+          ctx.lineWidth = 8;
+          ctx.lineCap = "round";
+
+          // 시계판 - 시
+          ctx.save();
+          for (var i=0;i<12;i++){
+            ctx.beginPath();
+            ctx.rotate(Math.PI/6);
+            ctx.moveTo(100,0);
+            ctx.lineTo(120,0);
+            ctx.stroke();
+          }
+          ctx.restore();
+
+          // 시계판 - 분
+          ctx.save();
+          ctx.lineWidth = 5;
+          for (i=0;i<60;i++){
+            if (i%5!=0) {
+              ctx.beginPath();
+              ctx.moveTo(117,0);
+              ctx.lineTo(120,0);
+              ctx.stroke();
+            }
+            ctx.rotate(Math.PI/30);
+          }
+          ctx.restore();
+          
+          var sec = now.getSeconds();
+          var min = now.getMinutes();
+          var hr  = now.getHours();
+          hr = hr>=12 ? hr-12 : hr;
+
+          ctx.fillStyle = "black";
+
+          // 시간 표시 - 시
+          ctx.save();
+          ctx.rotate( hr*(Math.PI/6) + (Math.PI/360)*min + (Math.PI/21600)*sec )
+          ctx.lineWidth = 14;
+          ctx.beginPath();
+          ctx.moveTo(-20,0);
+          ctx.lineTo(80,0);
+          ctx.stroke();
+          ctx.restore();
+
+          // 시간 표시 - 분
+          ctx.save();
+          ctx.rotate( (Math.PI/30)*min + (Math.PI/1800)*sec )
+          ctx.lineWidth = 10;
+          ctx.beginPath();
+          ctx.moveTo(-28,0);
+          ctx.lineTo(112,0);
+          ctx.stroke();
+          ctx.restore();
+          
+          // 시간 표시 - 초
+          ctx.save();
+          ctx.rotate(sec * Math.PI/30);
+          ctx.strokeStyle = "#D40000";
+          ctx.fillStyle = "#D40000";
+          ctx.lineWidth = 6;
+          ctx.beginPath();
+          ctx.moveTo(-30,0);
+          ctx.lineTo(83,0);
+          ctx.stroke();
+          ctx.beginPath();
+          ctx.arc(0,0,10,0,Math.PI*2,true);
+          ctx.fill();
+          ctx.beginPath();
+          ctx.arc(95,0,10,0,Math.PI*2,true);
+          ctx.stroke();
+          ctx.fillStyle = "rgba(0,0,0,0)";
+          ctx.arc(0,0,3,0,Math.PI*2,true);
+          ctx.fill();
+          ctx.restore();
+
+          ctx.beginPath();
+          ctx.lineWidth = 14;
+          ctx.strokeStyle = '#325FA2';
+          ctx.arc(0,0,142,0,Math.PI*2,true);
+          ctx.stroke();
+
+          ctx.restore();
+        }
+
+        var day2 = new Date(); // 예제 7-5 Date 객체 생성
+        alert("사이트에 들어오신 시간은"+day2.getHours()+"시"+day2.getMinutes()+"분"+day2.getSeconds()+"초 입니다.\n계산을 원하는 심볼을 체크! 하시고 정보를 입력해 주세요!")
+
+        //예제 7-6 활용은 body가 끝나는 지점에 있다.
+
+    
+
+
+
+
+
+
+
+
+    </script>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>심볼 계산기 - Maplecal</title>
+
+    <meta name="keywords" content="메이플 계산기, 심볼 계산기, 몬파 계산기, 하이퍼 스텟 계산기">
+    <meta name="description" content="심볼 개수를 입력값으로 받아 남은 일 수와 소요되는 메소를 출력하는 계산기">
+    <link rel="canonical" href="https://maplecal.com/symbol">
+    <link rel="shortcut icon" href="/static/favicon/CalculatorFavicon.ico">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+
+</head>
+
+<body onload="init()"> <!--시계 자동실행-->
+    <!-- 내비 바-->
+
+    <!--심볼 계산 기능만 수정하였기 때문에 위에 있던 메뉴는 삭제하였습니다.-->
+
+
+    <div class="container">
+        <div class="row">
+            <!-- 입력 폼-->
+            <div class="col-lg-6 offset-lg-3" id="col-input">
+                <!-- 제목 -->
+                <div class="card border-info text-dark" style="margin-bottom:10px;margin-top: 50px;">
+                    <div class="card-body">
+                        <h2>심볼 계산기</h2>
+                    </div>
+                </div>
+                <!-- 입력 -->
+                <!-- 심볼 선택 -->
+                <button id="prin" style="position: fixed; right: 10px;" onmouseover="setDoing(3000)">프린트</button>
+                <!-- 예제 10-3, 10-6 적용-->
+                <div><span id="span1" style="position: fixed;top: 10px;right: 10px; background-color: skyblue;border-style: solid;">버튼 위에 마우스를 3초이상 올려놓으면 프린트 창이 열립니다. 클릭하게 되면 멈춥니다.</span>></div>
+                <!--무한반복 관련 script는 body부분이 끝나는 곳에 있다.-->
+                <canvas id="canvas" style="position: fixed;right: 5px;bottom: 10px;"></canvas>
+                <button id="enchant" style="position: fixed;left: 10px;top: 10px;">20%의 확률!!</button>
+                <button id="enchant2" style="position: fixed;left: 10px;top: 50px;">40%의 확률은..?</button>
+                <div class="card border-info text-dark" style="margin-bottom:20px;">
+                    <div class="card-body" id="card-check-symbol">
+                        <div class="form-group row justify-content-center">
+                            <div class="col-2">
+                                <div class="custom-control custom-checkbox">
+                                    <input type="checkbox" class="custom-control-input" id="smeyrCheckbox">
+                                    <label class="custom-control-label" for="smeyrCheckbox">
+                                        <img src="static\img\SymbolImage\smeyrSymbol.png" width="43" height="43" title="소멸의 여로"></label>
+                                </div>
+                            </div>
+                            <div class="col-2">
+                                <div class="custom-control custom-checkbox">
+                                    <input type="checkbox" class="custom-control-input" id="ccCheckbox">
+                                    <label class="custom-control-label" for="ccCheckbox">
+                                        <img src="static\img\SymbolImage\ccSymbol.png" width="43" height="43" title="츄츄 아일랜드"></label>
+                                </div>
+                            </div>
+                            <div class="col-2">
+                                <div class="custom-control custom-checkbox">
+                                    <input type="checkbox" class="custom-control-input" id="rhlCheckbox">
+                                    <label class="custom-control-label" for="rhlCheckbox">
+                                        <img src="static\img\SymbolImage\rhlSymbol.png" width="43" height="43" title="레헬른"></label>
+                                </div>
+                            </div>
+                            <div class="col-2">
+                                <div class="custom-control custom-checkbox">
+                                    <input type="checkbox" class="custom-control-input" id="arcnCheckbox">
+                                    <label class="custom-control-label" for="arcnCheckbox">
+                                        <img src="static\img\SymbolImage\arcnSymbol.png" width="43" height="43" title="아르카나"></label>
+                                </div>
+                            </div>
+                            <div class="col-2">
+                                <div class="custom-control custom-checkbox">
+                                    <input type="checkbox" class="custom-control-input" id="mrsCheckbox">
+                                    <label class="custom-control-label" for="mrsCheckbox">
+                                        <img src="static\img\SymbolImage\mrsSymbol.png" width="43" height="43" title="모라스"></label>
+                                </div>
+                            </div>
+                            <div class="col-2">
+                                <div class="custom-control custom-checkbox">
+                                    <input type="checkbox" class="custom-control-input" id="asprCheckbox">
+                                    <label class="custom-control-label" for="asprCheckbox">
+                                        <img src="static\img\SymbolImage\asprSymbol.png" width="43" height="43" title="에스페라"></label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <form class="form-inline justify-content-center" style="margin-bottom:20px;" action="/result" method="post" id="loadForm">
+                      <input class="form-control col-5" style="margin-right:5px;" type="search" placeholder="닉네임" aria-label="Search" name="nickname">
+                      <button class="btn btn-outline-success my-2 my-sm-0" type="submit" id="search">검색</button>
+                    </form>
+                    <!-- 레벨 / 개수 등 입력 -->
+                    <form id="form-input">
+                        <div class="eachInput" id="smeyr-input">
+                            <label class="big">소멸의 여로</label>
+                            <div class="form-group row" style="margin-bottom:5px;">
+                                <label for="smeyrLevel" class="col-sm-2 col-form-label">레벨 / 개수</label>
+                                <div class="col-sm-2">
+                                    <input type="number" min="1" max="19" class="form-control" id="smeyrLevel">
+                                </div>
+                                <div class="col-sm-2">
+                                    <input type="number" min="0" max="372" class="form-control" id="smeyrNumber">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="eachInput" id="cc-input">
+                            <label class="big">츄츄 아일랜드</label>
+                            <div class="form-group row" style="margin-bottom:5px;">
+                                <label for="ccLevel" class="col-sm-2 col-form-label">레벨 / 개수</label>
+                                <div class="col-sm-2">
+                                    <input type="number" min="1" max="19" class="form-control" id="ccLevel">
+                                </div>
+                                <div class="col-sm-2">
+                                    <input type="number" min="0" max="372" class="form-control" id="ccNumber">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="eachInput" id="rhl-input">
+                            <label class="big">레헬른</label>
+                            <div class="form-group row" style="margin-bottom:5px;">
+                                <label for="rhlLevel" class="col-sm-2 col-form-label">레벨 / 개수</label>
+                                <div class="col-sm-2">
+                                    <input type="number" min="1" max="19" class="form-control" id="rhlLevel">
+                                </div>
+                                <div class="col-sm-2">
+                                    <input type="number" min="0" max="372" class="form-control" id="rhlNumber">
+                                </div>
+                                <label for="dreamLayer" class="col-sm-2 col-form-label">드림 층수</label>
+                                <div class="col-sm-2">
+                                    <input type="number" min="0" max="990" step="10" class="form-control" id="dreamLayer">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="eachInput" id="arcn-input">
+                            <label class="big">아르카나</label>
+                            <div class="form-group row" style="margin-bottom:5px;">
+                                <label for="arcnLevel" class="col-sm-2 col-form-label">레벨 / 개수</label>
+                                <div class="col-sm-2">
+                                    <input type="number" min="1" max="19" class="form-control" id="arcnLevel">
+                                </div>
+                                <div class="col-sm-2">
+                                    <input type="number" min="0" max="372" class="form-control" id="arcnNumber">
+                                </div>
+                                <label for="ssScore" class="col-sm-2 col-form-label">스세 점수</label>
+                                <div class="col-sm-2">
+                                    <input type="number" min="0" max="30000" step="1000" class="form-control" id="ssScore" style="padding-right:0px;">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="eachInput" id="mrs-input">
+                            <label class="big">모라스</label>
+                            <div class="form-group row" style="margin-bottom:5px;">
+                                <label for="mrsLevel" class="col-sm-2 col-form-label">레벨 / 개수</label>
+                                <div class="col-sm-2">
+                                    <input type="number" min="1" max="19" class="form-control" id="mrsLevel">
+                                </div>
+                                <div class="col-sm-2">
+                                    <input type="number" min="0" max="372" class="form-control" id="mrsNumber">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="eachInput" id="aspr-input">
+                            <label class="big">에스페라</label>
+                            <div class="form-group row" style="margin-bottom:5px;">
+                                <label for="asprLevel" class="col-sm-2 col-form-label">레벨 / 개수</label>
+                                <div class="col-sm-2">
+                                    <input type="number" min="1" max="19" class="form-control" id="asprLevel">
+                                </div>
+                                <div class="col-sm-2">
+                                    <input type="number" min="0" max="372" class="form-control" id="asprNumber">
+                                </div>
+                            </div>
+                        </div>
+                        <button type="submit" class="big btn btn-primary btn-block" id="btn-run" style="display:none; margin-top:10px;">계산</button>
+                        <!-- description -->
+                        <div class="info">
+                            <p style="font-weight:bold">
+                                현재 만렙까지 달성한 심볼을 제외한 나머지 심볼을 선택하시오.
+                            </p>
+                            <p style="font-weight:bold">
+                                +닉네임을 통한 검색 기능 추가 (캐릭터 정보 공개 설정 필요)
+                            </p>
+                            <p>
+                                현재 데이터 불러오는데 20 ~ 25초 정도 소요 (개선중)
+                            </p>
+                            <p>
+                                ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓
+                            </p>
+                            <p>
+                                <a href="https://maplestory.nexon.com/MyMaple/Account/Character/Visibility" target="_blank">캐릭터 정보 공개 설정하러가기</a>
+                            </p>
+                            <p>
+                                ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑ ↑
+                            </p>
+                            <p>
+                                레헬른 NPC에게서 받는 드림 코인은 24 ~ 36개 중 랜덤이므로
+                            </p>
+                            <p>
+                                중간값인 30코인 = 심볼1로 환산하여 계산
+                            </p>
+                            <p>
+                                스피릿 세이비어 점수는 3판 합산 점수 입력
+                            </p>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <!-- 출력 폼 -->
+            <div class="col-lg-5" id="col-output" style="display:none;">
+                <!-- 제목 -->
+                <div class="card border-info text-dark" style="margin-bottom:10px;">
+                    <div class="card-body">
+                        <h2>결과</h2>
+                    </div>
+                </div>
+                <!-- 결과값 테이블 출력 -->
+                <div class="card border-info text-dark" style="margin-bottom:20px;">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th scope="col">
+                                    심볼
+                                </th>
+                                <th scope="col">
+                                    달성 날짜
+                                </th>
+                                <th scope="col">
+                                    누적 메소
+                                </th>
+                            </tr>
+                        </thead>
+                        <!-- 동적으로 출력 -->
+                        <tbody id="tbody-content">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-2"></div>
+
+    <script>
+        //예제 10-4, 9-4
+        var TimeID2 = null;
+
+
+        var span = document.getElementById('span1');
+        var TimeID2 = setInterval("goRotate()",200); //예제 10-4 (무한반복)
+
+
+        span.onclick = function(e){ //익명함수를 사용하였다. (예제 9-4) (9-5 익명함수로 이벤트 객체를 전달받았다.)
+            clearInterval(TimeID2); //ID = "span" 부분을 클릭한다면 반복을 멈춘다.
+        }
+
+
+
+
+        function goRotate(){ //반복적으로 한 문자씩 짤라서 맨 뒤로 보내라, 즉 문자가 움직이는 것으로 보인다.
+            var str = span.innerHTML;
+            var firstChar = str.substr(0,1);
+            var remains = str.substr(1,str.length-1);
+            str = remains + firstChar;
+            span.innerHTML = str;
+        }
+
+
+        if(day2.getHours()>=6 && day2.getHours()<=18) //예제 7-6을 응용하여 아침 6시~오후6시 사이에는 배경색이 흰색
+        {
+            document.body.style.backgroundColor = "white" ;
+        }
+        else
+        {
+            document.body.style.backgroundColor = "gray"; //그 외의 시간에는 배경색을 회색으로 설정하였다.
+        }
+
+        var percent = new Array();
+
+        percent =["성공","성공","실패","실패","실패","실패","실패","실패","실패","실패"]; //7-3 새로운 배열객체 생성
+
+        var per2;
+
+        per2 = percent.slice(0,6); //index 0~5까지 잘라서 새롭게 배열을 만든다. 예제 7-4
+
+        var random1 = Math.random(); //Math의 랜덤 메소드 사용
+        var random2 = Math.random();
+
+        var btn1 = document.getElementById("enchant");
+        var btn2 = document.getElementById("enchant2");
+
+        btn1.onclick = function(e){ //익명함수로 이벤트 객체 전달
+            alert(e.type+"결과는..! >>>"+percent[Math.floor(random1*10)]); // 예제 9-6 사용
+
+        }
+
+        btn2.onclick = function(e){
+            alert(e.type+"결과는..! >>>"+percent[Math.floor(random2*5)]);
+
+        }
+
+
+    </script>
+
+
+
+    <!-- 머리 말 -->
+    <footer>
+        <p>
+            Copyright 2020 ⓒ maplecal All rights reserved <br />
+            Contact email : <a href="/cdn-cgi/l/email-protection#7f0c171a1408134d4b3f18121e1613511c1012"><span class="__cf_email__" data-cfemail="7c0f1419170b104e483c1b111d1510521f1311">[email&#160;protected]</span></a> <br />
+            OpenSource : <a href="https://github.com/shekwl24/maplecal">github.com/shekwl24/maplecal</a>
+        </p>
+    </footer>
+    <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script src="/static/js/symbolResultFn.js"></script>
+    <script src="https://code.jquery.com/jquery-latest.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
+    <script>
+        $(function() {
+            $('#loadForm').on('submit', function(e) {
+                $('#search').text("데이터 수집중..")
+                $.ajax({
+                    url: '/result',
+                    type: 'post',
+                    data: $('form').serialize(),
+                    success: function(data) {
+                        let obj = JSON.parse(data)
+                        let vilName = ['smeyr', 'cc', 'rhl', 'arcn', 'mrs', 'aspr']
+
+                        for(let i = 0; i < 6; i++) {
+                            tmpCheckbox = vilName[i] + 'Checkbox'
+                            tmpLevel = vilName[i] + 'Level'
+                            tmpNumber = vilName[i] + 'Number'
+
+                            if($(`#${tmpCheckbox}`).is(":checked")) {
+                                $(`#${tmpCheckbox}`).trigger("click")
+                            }
+
+                            if(obj['levels'][i] == 0) obj['levels'][i] = 1
+                            if(obj['levels'][i] != 20) {
+
+                                $(`#${tmpLevel}`).val(obj['levels'][i])
+                                $(`#${tmpNumber}`).val(obj['numbers'][i])
+                                $(`#${tmpCheckbox}`).trigger("click")
+                                if(i == 2) {
+                                    $('#dreamLayer').val(100)
+                                }
+                                if(i == 3) {
+                                    $('#ssScore').val(30000)
+                                }
+                            }
+                        }
+                        $('#btn-run').trigger("click")
+                        $('#search').text("검색")
+                    },
+                    error: function(error) {
+                        alert("캐릭터정보 비공개 상태입니다.")
+                        $('#search').text("검색")
+                    }
+                });
+                e.preventDefault();
+            });
+
+            let cnt = 0;
+            // 체크박스 클릭 시 event
+            $(":checkbox").click(function() {
+                var name = $(this).attr('id');
+                name = name.slice(0, -8);
+                name_input = name + "-input";
+
+                // 체크박스 체크 시
+                if ($(this).is(":checked")) {
+                    cnt++;
+
+                    $(`#${name_input}`).show();
+                    $("#btn-run").show();
+                    $(".info").hide();
+                    $(`#${name}Level`).attr("required", true);
+                    $(`#${name}Number`).attr("required", true);
+                    if (name == "rhl") {
+                        $('#dreamLayer').attr("required", true);
+                    }
+                    if (name == "arcn") {
+                        $('#ssScore').attr("required", true);
+                    }
+                    // 체크 박스 해제 시
+                } else {
+                    cnt--;
+                    $(`#${name}Number`).val("");
+                    $(`#${name}Level`).val("");
+                    $(`#${name}Level`).attr("required", false);
+                    $(`#${name}Number`).attr("required", false);
+                    if (name == "rhl") {
+                        $('#dreamLayer').attr("required", false);
+                        $('#dreamLayer').val("");
+                    }
+                    if (name == "arcn") {
+                        $('#ssScore').val("");
+                        $('#ssScore').attr("required", false);
+                    }
+                    $(`#${name_input}`).hide();
+                    if (cnt == 0) {
+                        $(".info").show();
+                        $("#btn-run").hide();
+                    }
+
+                }
+            });
+
+            // 계산 버튼 클릭 이후 이벤트
+            function run() {
+                let total_meso = 0;
+                $('#tbody-content').empty();
+                $('#col-input').removeClass('offset-lg-3');
+                setTimeout(() => {
+                    $('#col-output').css("display", "");
+                }, 500);
+                if ($("#smeyrCheckbox").is(":checked")) {
+                    let level = parseInt($("#smeyrLevel").val());
+                    let num = parseInt($("#smeyrNumber").val());
+                    total_meso += smeyrCalMeso(level);
+
+                    $('#tbody-content').append(`
+                      <tr>
+                          <td><img src="static/img/SymbolImage/smeyrSymbol.png" width="43" height="43"></td>
+                          <td style="vertical-align:middle;">${calDate(level, num, 14)}</td>
+                          <td style="vertical-align:middle;">${smeyrCalMeso(level).toLocaleString()}</td>
+                      </tr>
+                    `);
+                }
+                if ($("#ccCheckbox").is(":checked")) {
+                    level = parseInt($("#ccLevel").val());
+                    num = parseInt($("#ccNumber").val());
+                    total_meso += etcCalMeso(level);
+
+                    $('#tbody-content').append(`
+                        <tr>
+                            <td><img src="static/img/SymbolImage/ccSymbol.png" width="43" height="43"></td>
+                            <td style="vertical-align:middle;">${calDate(level, num, 19)}</td>
+                            <td style="vertical-align:middle;">${etcCalMeso(level).toLocaleString()}</td>
+                        </tr>
+                    `);
+                }
+                if ($("#rhlCheckbox").is(":checked")) {
+                    level = parseInt($("#rhlLevel").val());
+                    num = parseInt($("#rhlNumber").val());
+                    let layer = parseInt($("#dreamLayer").val());
+                    let layerCoin;
+                    if (layer < 170) layerCoin = layer * 3;
+                    else layerCoin = 500;
+                    total_meso += etcCalMeso(level);
+
+                    $('#tbody-content').append(`
+                        <tr>
+                            <td><img src="static/img/SymbolImage/rhlSymbol.png" width="43" height="43"></td>
+                            <td style="vertical-align:middle;">${calDate(level, num, 4+(layerCoin/30)+1)}</td>
+                            <td style="vertical-align:middle;">${etcCalMeso(level).toLocaleString()}</td>
+                        </tr>
+                    `);
+                }
+                if ($("#arcnCheckbox").is(":checked")) {
+                    level = parseInt($("#arcnLevel").val());
+                    num = parseInt($("#arcnNumber").val());
+                    total_meso += etcCalMeso(level);
+                    let ssScore = parseInt($("#ssScore").val());
+                    let ssCoin = ssScore / 1000;
+
+                    $('#tbody-content').append(`
+                        <tr>
+                            <td><img src="static/img/SymbolImage/arcnSymbol.png" width="43" height="43"></td>
+                            <td style="vertical-align:middle;">${calDate(level, num, 8+(ssCoin/3))}</td>
+                            <td style="vertical-align:middle;">${etcCalMeso(level).toLocaleString()}</td>
+                        </tr>
+                    `);
+                }
+                if ($("#mrsCheckbox").is(":checked")) {
+                    level = parseInt($("#mrsLevel").val());
+                    num = parseInt($("#mrsNumber").val());
+                    total_meso += etcCalMeso(level);
+
+                    $('#tbody-content').append(`
+                        <tr>
+                            <td><img src="static/img/SymbolImage/mrsSymbol.png" width="43" height="43"></td>
+                            <td style="vertical-align:middle;">${calDate(level, num, 8)}</td>
+                            <td style="vertical-align:middle;">${etcCalMeso(level).toLocaleString()}</td>
+                        </tr>
+                    `);
+                }
+                if ($("#asprCheckbox").is(":checked")) {
+                    level = parseInt($("#asprLevel").val());
+                    num = parseInt($("#asprNumber").val());
+                    total_meso += etcCalMeso(level);
+
+                    $('#tbody-content').append(`
+                        <tr>
+                            <td><img src="static/img/SymbolImage/asprSymbol.png" width="43" height="43"></td>
+                            <td style="vertical-align:middle;">${calDate(level, num, 8)}</td>
+                            <td style="vertical-align:middle;">${etcCalMeso(level).toLocaleString()}</td>
+                        </tr>
+                    `);
+                }
+                $('#tbody-content').append(`
+                    <tr>
+                        <td></td>
+                        <td style="vertical-align:middle;">합계 메소</td>
+                        <td style="vertical-align:middle;">${total_meso.toLocaleString()}</td>
+                    </tr>`);
+            }
+
+            // 이벤트 처리 전 새로고침 방지
+            $("#form-input").submit(function(event) {
+                event.preventDefault(); // 새로 고침 방지
+                run(); // 실행
+            });
+        });
+    </script>
+</body>
+
+</html>
